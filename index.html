@@ -656,8 +656,11 @@ async function initFCM() {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return;
 
+    // Service Workerを登録して有効化を待つ
+    const swReg = await navigator.serviceWorker.register('/sales-dashboard/firebase-messaging-sw.js');
+    await navigator.serviceWorker.ready;
     // FCMトークンを取得してコンソールに出力（初回確認用）
-    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: await navigator.serviceWorker.register('/sales-dashboard/firebase-messaging-sw.js') });
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
     console.log('FCM Token:', token);
 
     // フォアグラウンド通知受信
