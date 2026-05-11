@@ -657,7 +657,7 @@ async function initFCM() {
     if (permission !== 'granted') return;
 
     // FCMトークンを取得してコンソールに出力（初回確認用）
-    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: await navigator.serviceWorker.register('/sales-dashboard/firebase-messaging-sw.js') });
     console.log('FCM Token:', token);
 
     // フォアグラウンド通知受信
