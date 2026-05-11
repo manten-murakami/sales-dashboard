@@ -648,38 +648,44 @@ const FIREBASE_CONFIG = {
 const VAPID_KEY = "BDI6wUQL8Lq419CzISXdNbMMqvP6aHrJFRKfwvx21S7GRPBnve6B5Ww0_uoZbx1jpnpS12br9Td2ZACyVMwaBtQ";
 
 async function initFCM() {
-  try {
-    firebase.initializeApp(FIREBASE_CONFIG);
-    const messaging = firebase.messaging();
+  const showBar = (color, html) => {
+    const el = document.createElement('div');
+    el.style.cssText = `background:${color};color:#fff;font-size:9px;padding:8px 14px;word-break:break-all;line-height:1.6;`;
+    el.innerHTML = html;
+    document.getElementById('app').appendChild(el);
+  };
 
-    // 通知許可を要求
+  try {
+    // Step1: 通知許可確認
     const permission = await Notification.requestPermission();
+    showBar('#333', '📋 通知許可: ' + permission);
     if (permission !== 'granted') return;
 
-    // Service Workerを登録して有効化を待つ
+    // Step2: Firebase初期化
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    const messaging = firebase.messaging();
+    showBar('#333', '🔥 Firebase初期化完了');
+
+    // Step3: Service Worker登録
     const swReg = await navigator.serviceWorker.register('/sales-dashboard/firebase-messaging-sw.js');
     await navigator.serviceWorker.ready;
-    // FCMトークンを取得してコンソールに出力（初回確認用）
+    showBar('#333', '⚙️ ServiceWorker登録完了');
+
+    // Step4: トークン取得
     const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
     console.log('FCM Token:', token);
-    // 画面上にトークンを表示（スタッフがコピーしてGENに送るため）
-    const tokenBar = document.createElement('div');
-    tokenBar.style.cssText = 'background:#1a1a2e;color:#aaa;font-size:9px;padding:8px 14px;word-break:break-all;line-height:1.5;';
-    tokenBar.innerHTML = '<span style="color:#4ecba3;font-weight:bold;">📱 通知トークン（GENに送ってください）</span><br>' + token;
-    document.getElementById('app').appendChild(tokenBar);
+    showBar('#1a1a2e', '📱 <b style="color:#4ecba3">通知トークン（GENに送ってください）</b><br>' + token);
 
     // フォアグラウンド通知受信
     messaging.onMessage(function(payload) {
       const { title, body } = payload.notification;
-      // 通知バーを更新
       document.getElementById('notifText').textContent = body;
-      // ブラウザ通知も表示
-      if (Notification.permission === 'granted') {
-        new Notification(title, { body });
-      }
+      if (Notification.permission === 'granted') new Notification(title, { body });
     });
+
   } catch(e) {
     console.warn('FCM init error:', e);
+    showBar('#c0392b', '<b>FCMエラー:</b> ' + e.message + ' / ' + e.code);
   }
 }
 
