@@ -662,6 +662,11 @@ async function initFCM() {
     // FCMトークンを取得してコンソールに出力（初回確認用）
     const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
     console.log('FCM Token:', token);
+    // 画面上にトークンを表示（スタッフがコピーしてGENに送るため）
+    const tokenBar = document.createElement('div');
+    tokenBar.style.cssText = 'background:#1a1a2e;color:#aaa;font-size:9px;padding:8px 14px;word-break:break-all;line-height:1.5;';
+    tokenBar.innerHTML = '<span style="color:#4ecba3;font-weight:bold;">📱 通知トークン（GENに送ってください）</span><br>' + token;
+    document.getElementById('app').appendChild(tokenBar);
 
     // フォアグラウンド通知受信
     messaging.onMessage(function(payload) {
