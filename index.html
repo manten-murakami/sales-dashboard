@@ -223,6 +223,9 @@ body {
 .yoy-neutral   { color:#aaa; font-size:11px; }
 .pb { padding-bottom:2rem; }
 </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 </head>
 <body>
 <div id="app">
@@ -632,7 +635,48 @@ function renderDetail(i) {
 }
 
 // ─── 起動 ─────────────────────────────────────────────────────────────────────
+
+// ─── Firebase FCM ──────────────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAX6Y0jlwOK-l_5blmUyTwA21SXGObTS0E",
+  authDomain: "sales-dashboard-c3227.firebaseapp.com",
+  projectId: "sales-dashboard-c3227",
+  storageBucket: "sales-dashboard-c3227.firebasestorage.app",
+  messagingSenderId: "15514100041",
+  appId: "1:15514100041:web:26ecc6379d505eff123a98"
+};
+const VAPID_KEY = "BDI6wUQL8Lq419CzISXdNbMMqvP6aHrJFRKfwvx21S7GRPBnve6B5Ww0_uoZbx1jpnpS12br9Td2ZACyVMwaBtQ";
+
+async function initFCM() {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const messaging = firebase.messaging();
+
+    // 通知許可を要求
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+
+    // FCMトークンを取得してコンソールに出力（初回確認用）
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+    console.log('FCM Token:', token);
+
+    // フォアグラウンド通知受信
+    messaging.onMessage(function(payload) {
+      const { title, body } = payload.notification;
+      // 通知バーを更新
+      document.getElementById('notifText').textContent = body;
+      // ブラウザ通知も表示
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body });
+      }
+    });
+  } catch(e) {
+    console.warn('FCM init error:', e);
+  }
+}
+
 init();
+initFCM();
 </script>
 </body>
 </html>
