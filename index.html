@@ -688,7 +688,6 @@ async function initFCM() {
     messaging.onMessage(function(payload) {
       const { title, body } = payload.notification;
       document.getElementById('notifText').textContent = body;
-      if (Notification.permission === 'granted') new Notification(title, { body });
     });
 
   } catch(e) {
